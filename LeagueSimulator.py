@@ -10,26 +10,26 @@ import operator
 def printf(format1, *args):
     sys.stdout.write(format1 % args)
 
-playoffAppearances=[0]
-
-class IntramuralTeam(object):
+class FantasyTeam(object):
     '''
     classdocs
     '''
-    numberOfTeams=0
-    def __init__(self,number,teamName,record):
-        self.number=number
-        self.teamName=teamName
+    def __init__(self,owner,name,record):
+        self.owner=owner
+        self.name=name
         if len(record) == 3:
             self.record = record
         else:
             self.record=[record[0],record[1],0]
     
+    def __str__(self):
+        return self.name
+    
     #get functions
-    def getNumber(self):
-        return self.number
+    def getOwner(self):
+        return self.owner
     def getName(self):
-        return self.teamName
+        return self.name
     def getRecord(self):
         return self.record
     def getWins(self):
@@ -51,94 +51,62 @@ class IntramuralTeam(object):
         self.record[1]+=1
         
 def createTeams():#Current Teams and records
-    teams = {} # teams should be a dictionary
-    teams["Adam"] = IntramuralTeam (1,"Team Linsky",[8,3])
-    teams["Jonathan"] = IntramuralTeam (2,"IM NOT PAYING",[8,3])
-    teams["Andrew"] = IntramuralTeam (3,"Sea Monsters",[8,3])
-    teams["Jack"] = IntramuralTeam (4,"Free Elf",[7,4])
-    teams["Nate"] = IntramuralTeam (5,"Trust The Process",[7,4])
-    teams["Jake"] = IntramuralTeam (6,"Team Momo",[7,4])
-    teams["Bailey"] = IntramuralTeam (7,"Tryin My Best",[7,4])
-    teams["Eric"] = IntramuralTeam (8,"Cleveland Busters",[4,7])
-    teams["Geoff"] = IntramuralTeam (9,"The Fox Den",[3,8])
-    teams["Henry"] = IntramuralTeam (10,"Champs",[3,8])
-    teams["Sherman"] = IntramuralTeam (11,"Team Mak",[2,9])
-    teams["George"] = IntramuralTeam (12,"Team Sheepie",[2,9])
-
-    for i in range(0,len(teams)-1):
-        playoffAppearances.append(0)
+    teams = {}
+    teams["Adam"] = FantasyTeam ("Adam","Team Linsky",[9,3])
+    teams["Jonathan"] = FantasyTeam ("Jonathan","IM NOT PAYING",[9,3])
+    teams["Andrew"] = FantasyTeam ("Andrew","Sea Monsters",[9,3])
+    teams["Jack"] = FantasyTeam ("Jack","Free Elf",[7, 5])
+    teams["Nate"] = FantasyTeam ("Nate","Trust The Process",[7,5])
+    teams["Jake"] = FantasyTeam ("Jake","Team Momo",[8,4])
+    teams["Bailey"] = FantasyTeam ("Bailey","Tryin My Best",[7,5])
+    teams["Eric"] = FantasyTeam ("Eric","Cleveland Busters",[4,8])
+    teams["Geoff"] = FantasyTeam ("Geoff","The Fox Den",[4,8])
+    teams["Henry"] = FantasyTeam ("Henry","Champs",[4,8])
+    teams["Sherman"] = FantasyTeam ("Sherman","Team Mak",[2,10])
+    teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10])
         
     return teams
     
 def chooseWinner(team1,team2,probability):#each team wins 50% of the time  
-    if(random.uniform(0,1)<probability):
+    if(random.uniform(0, 1)<probability):
         team1.addWin()
         team2.addLoss()
     else:
         team1.addLoss()
         team2.addWin()
 
-def sort(teams):#nonfunctional and replaced by line 103 (after the commented out call to this fxn)
-    newTeams=teams
-    for i in range(0,len(teams)):
-        for j in range(i,0):
-            if newTeams[j].getWins() > newTeams[j-1].getWins():
-                swap=newTeams[j]
-                newTeams[j]=newTeams[j-1]
-                newTeams[j-1]=swap
-            else:
-                break
-    return newTeams
-def printLeagueProbabilities(intramuralC,iterationsSoFar):
-    printf("| %15s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
-    for n in range(0,8):
-        printf("| %15s | %4d | %4d | %8.1f |\n", intramuralC[n].getName() , intramuralC[n].getWins(), intramuralC[n].getLosses(), playoffAppearances[intramuralC[n].getNumber()-1]/float(iterationsSoFar)*100)
+def printLeagueProbabilities(teams, playoffAppearances, iterationsSoFar):
+    printf("| %20s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
+    for owner, team in list(teams.items()):
+        printf("| %20s | %4d | %4d | %8.1f |\n", team.getName() , team.getWins(), team.getLosses(), playoffAppearances[owner]/float(iterationsSoFar)*100)
     printf("\n\n")
 
+def playoffs(teams, playoffAppearances, slots = 4):
+    # teamsSorted does not mutate the param teams
+    teamsSorted = sorted(teams.values(), key=operator.attrgetter('record'), reverse=True)
+    for i in range(0, slots):
+        playoffAppearances[teamsSorted[i].getOwner()] += 1
 
-def playoffs(teams):
-    playoffSlots=6
-    playoffTeams=0
-    tiebreakerCount=0
-    i=0
-    while playoffTeams < playoffSlots:
-        if teams[i].getWins() > teams[i+1].getWins():
-            if tiebreakerCount==0:
-                playoffAppearances[teams[i].getNumber()-1]+=1
-                playoffTeams+=1
-            elif tiebreakerCount + playoffTeams <= playoffSlots:
-                for n in range(0,tiebreakerCount+1):
-                    playoffAppearances[teams[i-n].getNumber()-1]+=1
-                    playoffTeams+=1
-                tiebreakerCount=0
-            else:
-                slotsLeft=playoffSlots-playoffTeams
-                selected=random.sample(range(0,tiebreakerCount+1),slotsLeft)
-                for n in range(0, len(selected) ):
-                    playoffAppearances[teams[i-selected[n]].getNumber()-1] += 1
-                    playoffTeams+=1
-                tiebreakerCount=0
-            i+=1
-        else:
-            i+=1
-            tiebreakerCount+=1                  
 def main():
-    half=.5
-    gamesLeft = []
+    gamesLeft = [[["Nate","Geoff",0.5],["George","Sherman",0.5],["Eric","Henry",0.5],["Andrew","Jonathan",0.5],["Adam","Jake",0.5],["Bailey","Jack",0.5]]]
+    
+    playoffAppearances = {}
+    for team in createTeams().keys():
+        playoffAppearances[team] = 0
 
-    iterations = 100000
+    iterations = 10000
     printf("\nRunning Sim with %d iterations...\n",iterations)
     
-    for i in range(0,iterations):
-        intramuralC = createTeams()
+    
+    for i in range(0, iterations):
+        teams = createTeams()
         #simulates week by week
-        for k in range(0,len(gamesLeft)):
-            for j in range(0,len(gamesLeft[k])):
-                chooseWinner(intramuralC[gamesLeft[k][j][0]], intramuralC[gamesLeft[k][j][1]], gamesLeft[k][j][2])
+        for week in gamesLeft:
+            for game in week:
+                chooseWinner(teams[game[0]], teams[game[1]], game[2])
+        playoffs(teams, playoffAppearances, 6)
+    printLeagueProbabilities(teams, playoffAppearances, iterations)
 
-        intramuralCSorted = sorted(intramuralC.values(), key=operator.attrgetter('record'), reverse=True)
-        playoffs(intramuralCSorted)
-        printLeagueProbabilities(intramuralCSorted, i+1)
 main()
            
     
