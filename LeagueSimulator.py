@@ -3,7 +3,7 @@ Created on Feb 1, 2018
 
 @author: Nate
 '''
-import random
+from numpy import random
 import sys
 import operator
 
@@ -18,7 +18,7 @@ class FantasyTeam(object):
         self.owner=owner
         self.name=name
         self.pf=pf
-        self.pf=pa
+        self.pa=pa
         if len(record) == 3:
             self.record = record
         else:
@@ -60,14 +60,36 @@ def createTeams():#Current Teams and records
     teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10],862.24,1268.82)
         
     return teams
+
+
+def chooseWinner(team1,team2, override = False): #
+    ppg1 = team1.pf / sum(team1.record)
+    ppg2 = team2.pf / sum(team2.record)
+
+    team1Score, team2Score = random.normal(loc = ppg1, scale = 18, size=1), random.normal(loc = ppg2, scale = 18, size=1)
     
-def chooseWinner(team1,team2,probability):#each team wins 50% of the time  
-    if(random.uniform(0, 1)<probability):
-        team1.addWin()
-        team2.addLoss()
+    team1.pf+=team1Score
+    team1.pa+=team2Score
+    team2.pf+=team2Score
+    team2.pa+=team1Score
+
+    if override:
+        if override == 1:
+            team1.addWin()
+            team2.addLoss()
+        elif override == 2:
+            team1.addLoss()
+            team2.addWin()
+        else:
+            raise Exception("InvalidOverride")
     else:
-        team1.addLoss()
-        team2.addWin()
+        if team1Score > team2Score:
+            team1.addWin()
+            team2.addLoss()
+        else:
+            team1.addLoss()
+            team2.addWin()
+
 
 def printLeagueProbabilities(teams, playoffAppearances, iterationsSoFar):
     printf("| %20s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
@@ -82,13 +104,13 @@ def playoffs(teams, playoffAppearances, slots = 4):
         playoffAppearances[teamsSorted[i].owner] += 1
 
 def main():
-    gamesLeft = [[["Nate","Geoff",0.5],["George","Sherman",0.5],["Eric","Henry",0.5],["Andrew","Jonathan",0.5],["Adam","Jake",0.5],["Bailey","Jack",0.5]]]
+    gamesLeft = [[["Nate","Geoff"],["George","Sherman"],["Eric","Henry"],["Andrew","Jonathan"],["Adam","Jake"],["Bailey","Jack"]]]
     
     playoffAppearances = {}
     for team in createTeams().keys():
         playoffAppearances[team] = 0
 
-    iterations = 10000
+    iterations = 1000000
     printf("\nRunning Sim with %d iterations...\n",iterations)
     
     
@@ -97,7 +119,7 @@ def main():
         #simulates week by week
         for week in gamesLeft:
             for game in week:
-                chooseWinner(teams[game[0]], teams[game[1]], game[2])
+                chooseWinner(teams[game[0]], teams[game[1]])
         playoffs(teams, playoffAppearances, 6)
     printLeagueProbabilities(teams, playoffAppearances, iterations)
 
