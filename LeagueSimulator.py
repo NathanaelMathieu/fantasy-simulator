@@ -14,9 +14,11 @@ class FantasyTeam(object):
     '''
     classdocs
     '''
-    def __init__(self,owner,name,record):
+    def __init__(self,owner,name,record,pf,pa):
         self.owner=owner
         self.name=name
+        self.pf=pf
+        self.pf=pa
         if len(record) == 3:
             self.record = record
         else:
@@ -26,12 +28,6 @@ class FantasyTeam(object):
         return self.name
     
     #get functions
-    def getOwner(self):
-        return self.owner
-    def getName(self):
-        return self.name
-    def getRecord(self):
-        return self.record
     def getWins(self):
         return self.record[0]
     def getLosses(self):
@@ -39,11 +35,9 @@ class FantasyTeam(object):
     def getTies(self):
         return self.record[2]
 
-  
-    
     #set functions
     def setRecord(self,record):
-        for i in range(0, 3):
+        for i in range(0, min(3, len(record))):
             self.record[i] = record[i]
     def addWin(self):
         self.record[0]+=1
