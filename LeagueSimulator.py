@@ -46,18 +46,18 @@ class FantasyTeam(object):
         
 def createTeams():#Current Teams and records
     teams = {}
-    teams["Adam"] = FantasyTeam ("Adam","Team Linsky",[9,3])
-    teams["Jonathan"] = FantasyTeam ("Jonathan","IM NOT PAYING",[9,3])
-    teams["Andrew"] = FantasyTeam ("Andrew","Sea Monsters",[9,3])
-    teams["Jack"] = FantasyTeam ("Jack","Free Elf",[7, 5])
-    teams["Nate"] = FantasyTeam ("Nate","Trust The Process",[7,5])
-    teams["Jake"] = FantasyTeam ("Jake","Team Momo",[8,4])
-    teams["Bailey"] = FantasyTeam ("Bailey","Tryin My Best",[7,5])
-    teams["Eric"] = FantasyTeam ("Eric","Cleveland Busters",[4,8])
-    teams["Geoff"] = FantasyTeam ("Geoff","The Fox Den",[4,8])
-    teams["Henry"] = FantasyTeam ("Henry","Champs",[4,8])
-    teams["Sherman"] = FantasyTeam ("Sherman","Team Mak",[2,10])
-    teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10])
+    teams["Adam"] = FantasyTeam ("Adam","Team Linsky",[9,3],1413.84,1158.28)
+    teams["Jonathan"] = FantasyTeam ("Jonathan","IM NOT PAYING",[9,3],1287.98,1198.66)
+    teams["Andrew"] = FantasyTeam ("Andrew","Sea Monsters",[9,3],1230.86,1081.96)
+    teams["Jack"] = FantasyTeam ("Jack","Free Elf",[7,5],1290.34,1178.18)
+    teams["Nate"] = FantasyTeam ("Nate","Trust The Process",[7,5],1282.6,1120.32)
+    teams["Jake"] = FantasyTeam ("Jake","Team Momo",[8,4],1283.3,1115.78)
+    teams["Bailey"] = FantasyTeam ("Bailey","Tryin My Best",[7,5],1230.5,1160.14)
+    teams["Eric"] = FantasyTeam ("Eric","Cleveland Busters",[4,8],1170.26,1356.48)
+    teams["Geoff"] = FantasyTeam ("Geoff","The Fox Den",[4,8],1156.1,1219.16)
+    teams["Henry"] = FantasyTeam ("Henry","Champs",[4,8],1088.86,1174.38)
+    teams["Sherman"] = FantasyTeam ("Sherman","Team Mak",[2,10],1108.62,1373.34)
+    teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10],862.24,1268.82)
         
     return teams
     
@@ -72,14 +72,14 @@ def chooseWinner(team1,team2,probability):#each team wins 50% of the time
 def printLeagueProbabilities(teams, playoffAppearances, iterationsSoFar):
     printf("| %20s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
     for owner, team in list(teams.items()):
-        printf("| %20s | %4d | %4d | %8.1f |\n", team.getName() , team.getWins(), team.getLosses(), playoffAppearances[owner]/float(iterationsSoFar)*100)
+        printf("| %20s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), playoffAppearances[owner]/float(iterationsSoFar)*100)
     printf("\n\n")
 
 def playoffs(teams, playoffAppearances, slots = 4):
     # teamsSorted does not mutate the param teams
-    teamsSorted = sorted(teams.values(), key=operator.attrgetter('record'), reverse=True)
+    teamsSorted = sorted(teams.values(), key=operator.attrgetter('record','pf'), reverse=True)
     for i in range(0, slots):
-        playoffAppearances[teamsSorted[i].getOwner()] += 1
+        playoffAppearances[teamsSorted[i].owner] += 1
 
 def main():
     gamesLeft = [[["Nate","Geoff",0.5],["George","Sherman",0.5],["Eric","Henry",0.5],["Andrew","Jonathan",0.5],["Adam","Jake",0.5],["Bailey","Jack",0.5]]]
