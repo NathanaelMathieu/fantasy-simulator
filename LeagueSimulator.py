@@ -43,24 +43,8 @@ class FantasyTeam(object):
     def addWin(self):
         self.record[0]+=1
     def addLoss(self):
-        self.record[1]+=1
-        
-# def createTeams():#Current Teams and records
-#     teams = {}
-#     teams["Adam"] = FantasyTeam ("Adam","Team Linsky",[9,3],1413.84,1158.28)
-#     teams["Jonathan"] = FantasyTeam ("Jonathan","IM NOT PAYING",[9,3],1287.98,1198.66)
-#     teams["Andrew"] = FantasyTeam ("Andrew","Sea Monsters",[9,3],1230.86,1081.96)
-#     teams["Jack"] = FantasyTeam ("Jack","Free Elf",[7,5],1290.34,1178.18)
-#     teams["Nate"] = FantasyTeam ("Nate","Trust The Process",[7,5],1282.6,1120.32)
-#     teams["Jake"] = FantasyTeam ("Jake","Team Momo",[8,4],1283.3,1115.78)
-#     teams["Bailey"] = FantasyTeam ("Bailey","Tryin My Best",[7,5],1230.5,1160.14)
-#     teams["Eric"] = FantasyTeam ("Eric","Cleveland Busters",[4,8],1170.26,1356.48)
-#     teams["Geoff"] = FantasyTeam ("Geoff","The Fox Den",[4,8],1156.1,1219.16)
-#     teams["Henry"] = FantasyTeam ("Henry","Champs",[4,8],1088.86,1174.38)
-#     teams["Sherman"] = FantasyTeam ("Sherman","Team Mak",[2,10],1108.62,1373.34)
-#     teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10],862.24,1268.82)
-        
-#     return teams
+        self.record[1]+=1'
+
 def createTeams(league):#Current Teams and records
     teams = {}
 
@@ -70,46 +54,46 @@ def createTeams(league):#Current Teams and records
     return teams
 
 
-def chooseWinner(team1,team2, override = False): #
-    ppg1 = team1.pf / sum(team1.record)
-    ppg2 = team2.pf / sum(team2.record)
+def chooseWinner(home_team, away_team, override = False): #
+    home_ppg = home_team.pf / sum(home_team.record)
+    away_ppg = away_team.pf / sum(away_team.record)
 
-    team1Score, team2Score = random.normal(loc = ppg1, scale = 18, size=1), random.normal(loc = ppg2, scale = 18, size=1)
+    home_score, away_score = random.normal(loc = home_ppg, scale = 18, size=1), random.normal(loc = away_ppg, scale = 18, size=1)
     
-    team1.pf+=team1Score
-    team1.pa+=team2Score
-    team2.pf+=team2Score
-    team2.pa+=team1Score
+    home_team.pf+=home_score
+    home_team.pa+=away_score
+    away_team.pf+=away_score
+    away_team.pa+=home_score
 
     if override:
         if override == 1:
-            team1.addWin()
-            team2.addLoss()
+            home_team.addWin()
+            away_team.addLoss()
         elif override == 2:
-            team1.addLoss()
-            team2.addWin()
+            home_team.addLoss()
+            away_team.addWin()
         else:
             raise Exception("InvalidOverride")
     else:
-        if team1Score > team2Score:
-            team1.addWin()
-            team2.addLoss()
+        if home_score > away_score:
+            home_team.addWin()
+            away_team.addLoss()
         else:
-            team1.addLoss()
-            team2.addWin()
+            home_team.addLoss()
+            away_team.addWin()
 
 
-def printLeagueProbabilities(teams, playoffAppearances, iterationsSoFar):
+def printLeagueProbabilities(teams, playoff_appearances, iterationsSoFar):
     printf("| %25s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
     for owner, team in list(teams.items()):
-        printf("| %25s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), playoffAppearances[owner]/float(iterationsSoFar)*100)
+        printf("| %25s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), playoff_appearances[owner]/float(iterationsSoFar)*100)
     printf("\n\n")
 
-def playoffs(teams, playoffAppearances, slots = 4):
+def playoffs(teams, playoff_appearances, slots = 4):
     # teamsSorted does not mutate the param teams
     teamsSorted = sorted(teams.values(), key=operator.attrgetter('record','pf'), reverse=True)
     for i in range(0, slots):
-        playoffAppearances[teamsSorted[i].name] += 1
+        playoff_appearances[teamsSorted[i].name] += 1
 
 def main():
     print("Retrieving the Teams from ESPN Fantasy")
@@ -118,13 +102,13 @@ def main():
 
     print("Retrieving the week's matchups from ESPN Fantasy")
     matchups = league.scoreboard(week=13)
-    gamesLeft = [[]]
+    games_left = [[]]
     for matchup in matchups:
-        gamesLeft[0].append([matchup.home_team.team_name, matchup.away_team.team_name])
+        games_left[0].append([matchup.home_team.team_name, matchup.away_team.team_name])
     
-    playoffAppearances = {}
+    playoff_appearances = {}
     for team in teams.keys():
-        playoffAppearances[team] = 0
+        playoff_appearances[team] = 0
 
     iterations = 100000
     printf("Running Sim with %d iterations...\n",iterations)
@@ -133,11 +117,11 @@ def main():
     for i in range(0, iterations):
         teams = originalTeams
         #simulates week by week
-        for week in gamesLeft:
+        for week in games_left:
             for game in week:
                 chooseWinner(teams[game[0]], teams[game[1]])
-        playoffs(teams, playoffAppearances)
-    printLeagueProbabilities(teams, playoffAppearances, iterations)
+        playoffs(teams, playoff_appearances)
+    printLeagueProbabilities(teams, playoff_appearances, iterations)
 
 main()
            
