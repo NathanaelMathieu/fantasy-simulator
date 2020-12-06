@@ -3,6 +3,7 @@ Created on Feb 1, 2018
 
 @author: Nate
 '''
+from espn_api.football import League
 from numpy import random
 import sys
 import operator
@@ -44,20 +45,27 @@ class FantasyTeam(object):
     def addLoss(self):
         self.record[1]+=1
         
-def createTeams():#Current Teams and records
+# def createTeams():#Current Teams and records
+#     teams = {}
+#     teams["Adam"] = FantasyTeam ("Adam","Team Linsky",[9,3],1413.84,1158.28)
+#     teams["Jonathan"] = FantasyTeam ("Jonathan","IM NOT PAYING",[9,3],1287.98,1198.66)
+#     teams["Andrew"] = FantasyTeam ("Andrew","Sea Monsters",[9,3],1230.86,1081.96)
+#     teams["Jack"] = FantasyTeam ("Jack","Free Elf",[7,5],1290.34,1178.18)
+#     teams["Nate"] = FantasyTeam ("Nate","Trust The Process",[7,5],1282.6,1120.32)
+#     teams["Jake"] = FantasyTeam ("Jake","Team Momo",[8,4],1283.3,1115.78)
+#     teams["Bailey"] = FantasyTeam ("Bailey","Tryin My Best",[7,5],1230.5,1160.14)
+#     teams["Eric"] = FantasyTeam ("Eric","Cleveland Busters",[4,8],1170.26,1356.48)
+#     teams["Geoff"] = FantasyTeam ("Geoff","The Fox Den",[4,8],1156.1,1219.16)
+#     teams["Henry"] = FantasyTeam ("Henry","Champs",[4,8],1088.86,1174.38)
+#     teams["Sherman"] = FantasyTeam ("Sherman","Team Mak",[2,10],1108.62,1373.34)
+#     teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10],862.24,1268.82)
+        
+#     return teams
+def createTeams(league):#Current Teams and records
     teams = {}
-    teams["Adam"] = FantasyTeam ("Adam","Team Linsky",[9,3],1413.84,1158.28)
-    teams["Jonathan"] = FantasyTeam ("Jonathan","IM NOT PAYING",[9,3],1287.98,1198.66)
-    teams["Andrew"] = FantasyTeam ("Andrew","Sea Monsters",[9,3],1230.86,1081.96)
-    teams["Jack"] = FantasyTeam ("Jack","Free Elf",[7,5],1290.34,1178.18)
-    teams["Nate"] = FantasyTeam ("Nate","Trust The Process",[7,5],1282.6,1120.32)
-    teams["Jake"] = FantasyTeam ("Jake","Team Momo",[8,4],1283.3,1115.78)
-    teams["Bailey"] = FantasyTeam ("Bailey","Tryin My Best",[7,5],1230.5,1160.14)
-    teams["Eric"] = FantasyTeam ("Eric","Cleveland Busters",[4,8],1170.26,1356.48)
-    teams["Geoff"] = FantasyTeam ("Geoff","The Fox Den",[4,8],1156.1,1219.16)
-    teams["Henry"] = FantasyTeam ("Henry","Champs",[4,8],1088.86,1174.38)
-    teams["Sherman"] = FantasyTeam ("Sherman","Team Mak",[2,10],1108.62,1373.34)
-    teams["George"] = FantasyTeam ("George","Team Sheepie",[2,10],862.24,1268.82)
+
+    for team in league.teams:
+        teams[team.team_name] = FantasyTeam(team.owner, team.team_name,[team.wins,team.losses,team.ties],team.points_for,team.points_against)
         
     return teams
 
@@ -92,35 +100,43 @@ def chooseWinner(team1,team2, override = False): #
 
 
 def printLeagueProbabilities(teams, playoffAppearances, iterationsSoFar):
-    printf("| %20s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
+    printf("| %25s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
     for owner, team in list(teams.items()):
-        printf("| %20s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), playoffAppearances[owner]/float(iterationsSoFar)*100)
+        printf("| %25s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), playoffAppearances[owner]/float(iterationsSoFar)*100)
     printf("\n\n")
 
 def playoffs(teams, playoffAppearances, slots = 4):
     # teamsSorted does not mutate the param teams
     teamsSorted = sorted(teams.values(), key=operator.attrgetter('record','pf'), reverse=True)
     for i in range(0, slots):
-        playoffAppearances[teamsSorted[i].owner] += 1
+        playoffAppearances[teamsSorted[i].name] += 1
 
 def main():
-    gamesLeft = [[["Nate","Geoff"],["George","Sherman"],["Eric","Henry"],["Andrew","Jonathan"],["Adam","Jake"],["Bailey","Jack"]]]
+    print("Retrieving the Teams from ESPN Fantasy")
+    league = League(league_id=1616916, year=2020)
+    teams = createTeams(league)
+
+    print("Retrieving the week's matchups from ESPN Fantasy")
+    matchups = league.scoreboard(week=13)
+    gamesLeft = [[]]
+    for matchup in matchups:
+        gamesLeft[0].append([matchup.home_team.team_name, matchup.away_team.team_name])
     
     playoffAppearances = {}
-    for team in createTeams().keys():
+    for team in teams.keys():
         playoffAppearances[team] = 0
 
-    iterations = 1000000
-    printf("\nRunning Sim with %d iterations...\n",iterations)
-    
-    
+    iterations = 100000
+    printf("Running Sim with %d iterations...\n",iterations)
+        
+    originalTeams = teams.copy()
     for i in range(0, iterations):
-        teams = createTeams()
+        teams = originalTeams
         #simulates week by week
         for week in gamesLeft:
             for game in week:
                 chooseWinner(teams[game[0]], teams[game[1]])
-        playoffs(teams, playoffAppearances, 6)
+        playoffs(teams, playoffAppearances)
     printLeagueProbabilities(teams, playoffAppearances, iterations)
 
 main()
