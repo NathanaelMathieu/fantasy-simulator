@@ -43,7 +43,7 @@ class FantasyTeam(object):
     def addWin(self):
         self.record[0]+=1
     def addLoss(self):
-        self.record[1]+=1'
+        self.record[1]+=1
 
 def createTeams(league):#Current Teams and records
     teams = {}
@@ -99,18 +99,23 @@ def main():
     print("Retrieving the Teams from ESPN Fantasy")
     league = League(league_id=1616916, year=2020)
     teams = createTeams(league)
+    sim_start_week = 12
+    sim_end_week = 13
 
-    print("Retrieving the week's matchups from ESPN Fantasy")
-    matchups = league.scoreboard(week=13)
-    games_left = [[]]
-    for matchup in matchups:
-        games_left[0].append([matchup.home_team.team_name, matchup.away_team.team_name])
+    print("Retrieving the upcoming matchups from ESPN Fantasy")
+    games_left = []
+    for i in range(0, sim_end_week - sim_start_week + 1):
+        games_left.append([])
+        matchups = league.scoreboard(week = sim_start_week + i)
+        for matchup in matchups:
+            games_left[i].append([matchup.home_team.team_name, matchup.away_team.team_name])
     
+    print(games_left)
     playoff_appearances = {}
     for team in teams.keys():
         playoff_appearances[team] = 0
 
-    iterations = 100000
+    iterations = 10000
     printf("Running Sim with %d iterations...\n",iterations)
         
     originalTeams = teams.copy()
@@ -118,8 +123,8 @@ def main():
         teams = originalTeams
         #simulates week by week
         for week in games_left:
-            for game in week:
-                chooseWinner(teams[game[0]], teams[game[1]])
+            for home_team, away_team in week:
+                chooseWinner(teams[home_team], teams[away_team])
         playoffs(teams, playoff_appearances)
     printLeagueProbabilities(teams, playoff_appearances, iterations)
 
