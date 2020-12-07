@@ -5,8 +5,9 @@ Created on Feb 1, 2018
 '''
 from espn_api.football import League
 from numpy import random
-import sys
+import copy
 import operator
+import sys
 
 def printf(format1, *args):
     sys.stdout.write(format1 % args)
@@ -114,12 +115,12 @@ def main():
     for team in teams.keys():
         sim_results[team] = {'appearances': 0, 'pf': teams[team].pf}
 
-    iterations = 10000
+    iterations = 100000
     printf("Running Sim with %d iterations...\n",iterations)
         
-    original_teams = teams.copy()
+    original_teams = copy.deepcopy(teams)
     for i in range(0, iterations):
-        teams = original_teams
+        teams = copy.deepcopy(original_teams)
         #simulates week by week
         for week in games_left:
             for home_team, away_team in week:
