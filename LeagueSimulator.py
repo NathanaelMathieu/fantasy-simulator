@@ -83,17 +83,17 @@ def chooseWinner(home_team, away_team, override = False): #
             away_team.addWin()
 
 
-def printLeagueProbabilities(teams, playoff_appearances, iterationsSoFar):
+def printLeagueProbabilities(teams, sim_results, iterationsSoFar):
     printf("| %25s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
     for owner, team in list(teams.items()):
-        printf("| %25s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), playoff_appearances[owner]/float(iterationsSoFar)*100)
-    printf("\n\n")
+        printf("| %25s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), sim_results[owner]['appearances']/float(iterationsSoFar)*100)
+    printf("\n")
 
-def playoffs(teams, playoff_appearances, slots = 4):
+def playoffs(teams, sim_results, slots = 4):
     # teamsSorted does not mutate the param teams
     teamsSorted = sorted(teams.values(), key=operator.attrgetter('record','pf'), reverse=True)
     for i in range(0, slots):
-        playoff_appearances[teamsSorted[i].name] += 1
+        sim_results[teamsSorted[i].name]['appearances'] += 1
 
 def main():
     print("Retrieving the Teams from ESPN Fantasy")
@@ -110,23 +110,22 @@ def main():
         for matchup in matchups:
             games_left[i].append([matchup.home_team.team_name, matchup.away_team.team_name])
     
-    print(games_left)
-    playoff_appearances = {}
+    sim_results = {}
     for team in teams.keys():
-        playoff_appearances[team] = 0
+        sim_results[team] = {'appearances': 0, 'pf': teams[team].pf}
 
     iterations = 10000
     printf("Running Sim with %d iterations...\n",iterations)
         
-    originalTeams = teams.copy()
+    original_teams = teams.copy()
     for i in range(0, iterations):
-        teams = originalTeams
+        teams = original_teams
         #simulates week by week
         for week in games_left:
             for home_team, away_team in week:
                 chooseWinner(teams[home_team], teams[away_team])
-        playoffs(teams, playoff_appearances)
-    printLeagueProbabilities(teams, playoff_appearances, iterations)
+        playoffs(teams, sim_results)
+    printLeagueProbabilities(original_teams, sim_results, iterations)
 
 main()
            
