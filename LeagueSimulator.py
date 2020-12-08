@@ -16,7 +16,7 @@ class FantasyTeam(object):
     '''
     classdocs
     '''
-    def __init__(self,owner,name,record,pf,pa):
+    def __init__(self, owner, name, record, pf, pa):
         self.owner=owner
         self.name=name
         self.pf=pf
@@ -24,7 +24,7 @@ class FantasyTeam(object):
         if len(record) == 3:
             self.record = record
         else:
-            self.record=[record[0],record[1],0]
+            self.record=[record[0], record[1], 0]
     
     def __str__(self):
         return self.name
@@ -38,7 +38,7 @@ class FantasyTeam(object):
         return self.record[2]
 
     #set functions
-    def setRecord(self,record):
+    def setRecord(self, record):
         for i in range(0, min(3, len(record))):
             self.record[i] = record[i]
     def addWin(self):
@@ -85,16 +85,19 @@ def chooseWinner(home_team, away_team, override = False): #
 
 
 def printLeagueProbabilities(teams, sim_results, iterationsSoFar):
-    printf("| %25s | %4s | %4s | %8s |\n-------------------------------------------\n", "Team Name", "Wins", "Loss", "Playoff%")
+    printf("| %25s | %4s | %4s | %8s | %8s |\n", "Team Name", "Wins", "Loss", "Playoff%","pf")
+    printf("-------------------------------------------------------------\n")
     for owner, team in list(teams.items()):
-        printf("| %25s | %4d | %4d | %8.1f |\n", team.name , team.getWins(), team.getLosses(), sim_results[owner]['appearances']/float(iterationsSoFar)*100)
+        printf("| %25s | %4d | %4d | %8.1f | %8.2f |\n", team.name , team.getWins(), team.getLosses(), sim_results[owner]['appearances'] / float(iterationsSoFar)*100, sim_results[owner]['pf'])
     printf("\n")
 
-def playoffs(teams, sim_results, slots = 4):
+def playoffs(teams, sim_results, iterations, slots = 4):
     # teamsSorted does not mutate the param teams
     teamsSorted = sorted(teams.values(), key=operator.attrgetter('record','pf'), reverse=True)
     for i in range(0, slots):
         sim_results[teamsSorted[i].name]['appearances'] += 1
+    for team in teams.values():
+        sim_results[team.name]['pf'] += team.pf / iterations
 
 def main():
     print("Retrieving the Teams from ESPN Fantasy")
@@ -113,9 +116,9 @@ def main():
     
     sim_results = {}
     for team in teams.keys():
-        sim_results[team] = {'appearances': 0, 'pf': teams[team].pf}
+        sim_results[team] = {'appearances': 0, 'pf': 0, 'wins': 0, 'losses': 0}
 
-    iterations = 100000
+    iterations = 100
     printf("Running Sim with %d iterations...\n",iterations)
         
     original_teams = copy.deepcopy(teams)
@@ -125,7 +128,7 @@ def main():
         for week in games_left:
             for home_team, away_team in week:
                 chooseWinner(teams[home_team], teams[away_team])
-        playoffs(teams, sim_results)
+        playoffs(teams, sim_results, iterations)
     printLeagueProbabilities(original_teams, sim_results, iterations)
 
 main()
