@@ -16,29 +16,23 @@ class FantasyTeam(object):
     '''
     classdocs
     '''
-    def __init__(self, owner, name, record, pf, pa):
+    def __init__(self, owner, name, wins, losses, ties, pf, pa):
         self.owner=owner
         self.name=name
         self.pf=pf
         self.pa=pa
-        self.wins=record[0]
-        self.losses=record[1]
-        self.ties=record[2]
+        self.wins=wins
+        self.losses=losses
+        self.ties=ties
     
     def __str__(self):
         return self.name
-
-    #set functions
-    def setRecord(self, record):
-        self.wins=record[0]
-        self.losses=record[1]
-        self.ties=record[2]
 
 def createTeams(league):#Current Teams and records
     teams = {}
 
     for team in league.teams:
-        teams[team.team_name] = FantasyTeam(team.owner, team.team_name,[team.wins,team.losses,team.ties],team.points_for,team.points_against)
+        teams[team.team_name] = FantasyTeam(team.owner, team.team_name, team.wins, team.losses, team.ties,team.points_for,team.points_against)
         
     return teams
 
